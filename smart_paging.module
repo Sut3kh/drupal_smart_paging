@@ -238,10 +238,10 @@ function smart_paging_form_alter(&$form, &$form_state, $form_id) {
         $smart_paging_js['smart_paging']['default_method'] = $default_method;
         drupal_add_js($smart_paging_js, 'setting');
         $form['smart_paging_settings'] += array(              
-          '#attached'    => array(
+          '#attached' => array(
             'js' => array(drupal_get_path('module', 'smart_paging') . '/js/smart_paging-admin.js'),
           ),
-          '#group'      => 'additional_settings',
+          '#group' => 'additional_settings',
         );
       }
       $form['smart_paging_settings']['smart_paging_use_default'] = array(
@@ -561,47 +561,50 @@ function smart_paging_url_inbound_alter(&$path, &$original_path, $path_language)
  * Change pagination query type URL to a clean URL
  */
 function smart_paging_url_outbound_alter(&$path, &$options, $original_path) {
-  if (isset($options['query']['page']) && variable_get('smart_paging_enable_clean_url', TRUE)) {
-    $url_fragment = smart_paging_get_url_fragment();
-    $page_query = explode(',', $options['query']['page']);
-    if (!(empty($url_fragment)) && is_array($url_fragment)){
-      foreach ($url_fragment as $index => $fragment) {
-        if ($page_query[1] == $index) {
-          $options['fragment'] = $fragment;
+  $arg = explode('/', $path);
+  if ($arg[0] == 'node' || $arg[0] == 'taxonomy' || $arg[0] == 'user') {
+    if (isset($options['query']['page']) && variable_get('smart_paging_enable_clean_url', TRUE)) {
+      $url_fragment = smart_paging_get_url_fragment();
+      $page_query = explode(',', $options['query']['page']);
+      if (!(empty($url_fragment)) && is_array($url_fragment)){
+        foreach ($url_fragment as $index => $fragment) {
+          if ($page_query[1] == $index) {
+            $options['fragment'] = $fragment;
+          }
         }
       }
-    }
-    if (!empty($path) && !$options['alias']) {
-      $language = isset($options['language']) && isset($options['language']->language) ? $options['language']->language : NULL;
-      if (function_exists("path_alias_xt_get_path_alias")) {
-        $alias = path_alias_xt_get_path_alias($original_path, $language);
+      if (!empty($path) && !$options['alias']) {
+        $language = isset($options['language']) && isset($options['language']->language) ? $options['language']->language : NULL;
+        if (function_exists("path_alias_xt_get_path_alias")) {
+          $alias = path_alias_xt_get_path_alias($original_path, $language);
+        }
+        else {
+          $alias = drupal_get_path_alias($original_path, $language);
+        } 
+        if ($alias != $original_path) {
+          $path = $alias;
+          $options['alias'] = TRUE;
+        }
+        else {
+          $path_arg = arg();
+          $path_arg = array_slice($path_arg, 0, array_search(variable_get('smart_paging_path_prefix', 'page'), $path_arg));
+          $path = empty($path_arg) ? $original_path : implode('/', $path_arg);
+        }
+      }
+      $path_prefix = variable_get('smart_paging_path_prefix', 'page');
+      if (isset($page_query[1]) && $page_query[1] != 0) {
+        $sub_page = $page_query[0];
+        $page  = isset($page_query[1]) ? $page_query[1] : '0';
+        $path .= "/$path_prefix/$sub_page/$page";
       }
       else {
-        $alias = drupal_get_path_alias($original_path, $language);
-      } 
-      if ($alias != $original_path) {
-        $path = $alias;
-        $options['alias'] = TRUE;
+        $sub_page = $page_query[0];
+        if ($sub_page) {
+          $path .= "/$path_prefix/$sub_page/0";
+        }
       }
-      else {
-        $path_arg = arg();
-        $path_arg = array_slice($path_arg, 0, array_search(variable_get('smart_paging_path_prefix', 'page'), $path_arg));
-        $path = empty($path_arg) ? $original_path : implode('/', $path_arg);
-      }
+      unset($options['query']['page']);
     }
-    $path_prefix = variable_get('smart_paging_path_prefix', 'page');
-    if (isset($page_query[1]) && $page_query[1] != 0) {
-      $sub_page = $page_query[0];
-      $page  = isset($page_query[1]) ? $page_query[1] : '0';
-      $path .= "/$path_prefix/$sub_page/$page";
-    }
-    else {
-      $sub_page = $page_query[0];
-      if ($sub_page) {
-        $path .= "/$path_prefix/$sub_page/0";
-      }
-    }
-    unset($options['query']['page']);
   }
 }
 
