@@ -66,6 +66,9 @@ function smart_paging_admin_settings($form, &$form_state) {
     '#description' => t('The selected values will be the initial values for all !smart_paging enabled entities. However, these values can be customized during content editing.', array('!smart_paging' => l(t('Smart Paging input filter'), 'admin/config/content/formats'))),
     '#collapsible' => FALSE,
     '#collapsed'   => FALSE,
+    '#attached'    => array(
+      'js' => array(drupal_get_path('module', 'smart_paging') . '/js/smart_paging-global-config.js'),
+    ),
   );
   $form['smart_paging_defaults']['smart_paging_method'] = array(
     '#type'          => 'select', 
