@@ -894,6 +894,11 @@ function smart_paging_field_attach_view_alter(&$build, $context) {
               }
               // Record total number of pages
               $total_page += count($pagebreak);
+              // Delivers a "page not found" error to the browser if desired
+              // in setting for non valid pages.
+              if ($current_page >= $total_page) {
+                drupal_not_found();
+              }
               // Final field content output
               $build[$field_name][$delta]['#markup'] = $output;
             }
