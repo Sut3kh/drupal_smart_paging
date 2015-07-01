@@ -503,7 +503,7 @@ function smart_paging_preprocess_views_view(&$vars) {
 function _smart_paging_href_replace($match) {
   $path = trim($match[1], '/');
   $path_info = parse_url($path);
-  $args = arg(NULL, $path_info['path']);
+  $args = arg(NULL, @$path_info['path']);
   $arg_count = count($args) - 1;
   $page = $args[$arg_count];
   $sub_page = $args[$arg_count - 1];
@@ -519,7 +519,7 @@ function _smart_paging_href_replace($match) {
       $path_info['path'] = implode('/', $alias);
     }
   }
-  return 'href="/' . $path_info['path'] . '?' . urldecode($path_info['query']) . '"';
+  return 'href="/' . @$path_info['path'] . '?' . urldecode(@$path_info['query']) . '"';
 }
 
 /**
